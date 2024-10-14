@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Fighter Jet Avoidance Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #000;
+        }
+        #game-over-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            display: none;
+        }
+        #game-over-screen button {
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="game-over-screen">
+        <h1>Game Over!</h1>
+        <p id="final-score"></p>
+        <button onclick="endGameAndClose()">End Game</button>
+    </div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let player = {
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 120,
+            width: 100,
+            height: 100,
+            speed: 10,
+            dx: 0
+        };
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        let obstacles = [];
+        let obstacleSpeed = 6;
+        let score = 0;
+        let gameOver = false;
+
+        const playerImg = new Image();
+        playerImg.src = 'fighter_jet_icon.png';
+
+        const obstacleImg = new Image();
+        obstacleImg.src = 'rock_icon.png';
+
+        const spaceWallLeft = new Image();
+        spaceWallLeft.src = 'space_wall_icon.png';
+
+        const spaceWallRight = new Image();
+        spaceWallRight.src = 'space_wall_icon.png';
+
+        const backgroundImg = new Image();
+        backgroundImg.src = 'starry_background.webp'; // Ensure the background image file name matches
+
+        function drawBackground() {
+            // Calculate the correct aspect ratio
+            const aspectRatio = backgroundImg.width / backgroundImg.height;
+            let bgWidth = canvas.width;
+            let bgHeight = canvas.height;
+
+            if (canvas.width / canvas.height > aspectRatio) {
+                bgHeight = canvas.width / aspectRatio;
+            } else {
+                bgWidth = canvas.height * aspectRatio;
+            }
+
+            const xOffset = (canvas.width - bgWidth) / 2;
+            const yOffset = (canvas.height - bgHeight) / 2;
+
+            ctx.drawImage(backgroundImg, xOffset, yOffset, bgWidth, bgHeight);
+        }
+
+        function drawPlayer() {
+            ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                ctx.drawImage(obstacleImg, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+        }
+
+        function movePlayer() {
+            player.x += player.dx;
+
+            // Check for wall collision
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        }
+
+        function createObstacle() {
+            const x = Math.random() * (canvas.width - 100);
+            obstacles.push({ x, y: 0, width: 100, height: 100 });
+        }
+
+        function moveObstacles() {
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += obstacleSpeed;
+
+                // Remove obstacles that are off the screen
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                    score++;
+                    if (score % 10 === 0) {
+                        obstacleSpeed += 1; // Increase speed every 10 points
+                    }
+                }
+            });
+        }
+
+        function checkCollision() {
+            obstacles.forEach(obstacle => {
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y
+                ) {
+                    gameOver = true;
+                }
+            });
+        }
+
+        function drawScore() {
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText(`Score: ${score}`, 20, 40);
+        }
+
+        function update() {
+            if (!gameOver) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                drawBackground();  // Draw the background first
+                drawPlayer();
+                drawObstacles();
+                drawScore();
+
+                movePlayer();
+                moveObstacles();
+                checkCollision();
+
+                // Draw space walls
+                ctx.drawImage(spaceWallLeft, 0, 0, 20, canvas.height); // Adjusted wall thickness
+                ctx.drawImage(spaceWallRight, canvas.width - 20, 0, 20, canvas.height);
+
+                requestAnimationFrame(update);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = "50px Arial";
+                ctx.fillStyle = "red";
+
+                // Show the Game Over screen
+                document.getElementById("final-score").innerText = `Your final score is: ${score}`;
+                document.getElementById("game-over-screen").style.display = "block";
+
+                // Placeholder to send score to an API
+                sendScoreToAPI(score);
+            }
+        }
+
+        function keyDown(e) {
+            if (e.key === 'ArrowRight' || e.key === 'Right') {
+                player.dx = player.speed;
+            } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
+                player.dx = -player.speed;
+            }
+        }
+
+        function keyUp(e) {
+            if (
+                e.key === 'ArrowRight' ||
+                e.key === 'Right' ||
+                e.key === 'ArrowLeft' ||
+                e.key === 'Left'
+            ) {
+                player.dx = 0;
+            }
+        }
+
+        function handleTouchStart(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }
+
+        function handleTouchMove(e) {
+            touchEndX = e.changedTouches[0].screenX;
+
+            const touchDifference = touchEndX - touchStartX;
+
+            if (Math.abs(touchDifference) > 30) { // Swipe threshold
+                if (touchDifference > 0) {
+                    // Swipe right
+                    player.dx = player.speed;
+                } else {
+                    // Swipe left
+                    player.dx = -player.speed;
+                }
+            }
+        }
+
+        function handleTouchEnd() {
+            player.dx = 0; // Stop movement when swipe ends
+        }
+
+        function sendScoreToAPI(score) {
+            // Placeholder function to send the score to an API
+            console.log(`Sending score: ${score} to API...`);
+            // Example: Use fetch or XMLHttpRequest to send the score to your server
+        }
+
+        function endGameAndClose() {
+            if (window.parent && window.parent.endGame) {
+                window.parent.endGame(); // Calls the endGame function in the parent window
+            }
+        }
+
+        document.addEventListener('keydown', keyDown);
+        document.addEventListener('keyup', keyUp);
+
+        // Add event listeners for touch controls
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', handleTouchEnd);
+
+        setInterval(createObstacle, 800); // More frequent obstacles
+
+        update();
+    </script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICP Gamer</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+            background: #0d0d0d;
+            color: #f2f2f2;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px;
+            background-color: #1a1a1a;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        header h1 {
+            color: #00ffcc;
+            text-transform: uppercase;
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .slider {
+            position: relative;
+            width: 80%;
+            margin: 20px auto;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slides img {
+            width: 100%;
+            border-radius: 15px;
+        }
+
+        .slider-nav {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .slider-nav button {
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .play-button button {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            color: #ffffff;
+            background-color: #e60000;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px #e60000;
+            margin-top: 20px;
+        }
+
+        .play-button button:hover {
+            background-color: #cc0000;
+        }
+
+        .countdown p {
+            font-size: 1.2rem;
+            margin-top: 30px;
+            color: #e6e6e6;
+        }
+
+        .leaderboard h2 {
+            font-size: 2rem;
+            color: #ffcc00;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #ffcc00;
+        }
+
+        .leaderboard ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .leaderboard ul li {
+            margin: 10px 0;
+            font-size: 1.2rem;
+            color: #f2f2f2;
+            background-color: #262626;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #262626;
+        }
+
+        .contact-us button {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            color: #ffffff;
+            background-color: #0066cc;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 50px;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px #0066cc;
+        }
+
+        .contact-us button:hover {
+            background-color: #0052a3;
+        }
+
+        .game-iframe {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>ICP Gamer</h1>
+    </header>
+
+    <div class="container">
+        <!-- Slider Banner Section -->
+        <div class="slider">
+            <div class="slides">
+                <img src="banner1.webp" alt="Fighter Jet 1">
+                <img src="banner2.webp" alt="Fighter Jet 2">
+                <img src="banner3.webp" alt="Fighter Jet 3">
+            </div>
+            <div class="slider-nav">
+                <button onclick="prevSlide()">&#10094;</button>
+                <button onclick="nextSlide()">&#10095;</button>
+            </div>
+        </div>
+
+        <!-- Play Button -->
+        <div class="play-button">
+            <button onclick="startGame()">Play Now</button>
+        </div>
+
+        <!-- Time Left for the Week -->
+        <div class="countdown">
+            <p>Time Left for the Week: <span id="timer">00:00:00</span></p>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <h2>Leaderboard</h2>
+            <ul id="leaderboard">
+                <!-- Leaderboard entries will be inserted here by JavaScript -->
+            </ul>
+        </div>
+
+        <!-- Prizes -->
+        <div class="leaderboard">
+            <h2>Prizes to be Won</h2>
+            <ul>
+                <li>1st Prize - 800 Tokens</li>
+                <li>2nd Prize - 500 Tokens</li>
+                <li>3rd Prize - 300 Tokens</li>
+                <li>4th-10th Prize - 50 Tokens each</li>
+            </ul>
+        </div>
+
+        <!-- Contact Us -->
+        <div class="contact-us">
+            <button>Contact Us to Advertise</button>
+            <p style="color: #cccccc; margin-top:30px;">Sponsored By</p>
+            <img src="logo.png" width="200" style="display: block; margin: 0 auto; text-align: center;">
+        </div>
+    </div>
+
+    <!-- Game Iframe -->
+    <iframe id="gameIframe" class="game-iframe" src=""></iframe>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slides img');
+
+        function showSlide(index) {
+            const totalSlides = slides.length;
+            if (index >= totalSlides) {
+                currentSlide = 0;
+            } else if (index < 0) {
+                currentSlide = totalSlides - 1;
+            } else {
+                currentSlide = index;
+            }
+            const offset = -currentSlide * 100;
+            document.querySelector('.slides').style.transform = `translateX(${offset}%)`;
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        function startGame() {
+            const iframe = document.getElementById('gameIframe');
+            iframe.src = 'game.html'; // Load your game page
+            iframe.style.display = 'block';
+
+            // Request fullscreen mode
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.mozRequestFullScreen) { /* Firefox */
+                iframe.mozRequestFullScreen();
+            } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) { /* IE/Edge */
+                iframe.msRequestFullscreen();
+            }
+        }
+
+        function endGame() {
+            const iframe = document.getElementById('gameIframe');
+            iframe.src = ''; // Unload the game page
+            iframe.style.display = 'none';
+
+            // Exit fullscreen mode
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) { /* Firefox */
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE/Edge */
+                document.msExitFullscreen();
+            }
+        }
+
+        // Automatically change slides every 3 seconds
+        setInterval(nextSlide, 3000);
+
+        // Countdown Timer
+        function startTimer() {
+            const endTime = new Date().getTime() + 7 * 24 * 60 * 60 * 1000; // 1 week from now
+            const timerElement = document.getElementById('timer');
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const timeLeft = endTime - now;
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                timerElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+                if (timeLeft < 0) {
+                    timerElement.innerHTML = "Expired";
+                }
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        // Fetch and update leaderboard
+        function updateLeaderboard() {
+            fetch('leaderboard.php') // Update this URL with your actual leaderboard API URL
+                .then(response => response.json())
+                .then(data => {
+                    const leaderboardElement = document.getElementById('leaderboard');
+                    leaderboardElement.innerHTML = ''; // Clear current leaderboard
+
+                    data.forEach(player => {
+                        const li = document.createElement('li');
+                        li.textContent = `${player.name} - ${player.score} points`;
+                        leaderboardElement.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error fetching leaderboard:', error));
+        }
+
+        // Start the countdown and update leaderboard when the page loads
+        window.onload = function() {
+            startTimer();
+            updateLeaderboard();
+        };
+    </script>
+</body>
+</html>
